@@ -1,5 +1,5 @@
 import express, { Request } from 'express';
-import passport from 'passport';
+import { Auth } from '../lib/auth';
 
 const debugLib = require('debug')('event.route');
 const logERR = require('debug')('ERROR:event.route');
@@ -29,24 +29,21 @@ router.param('id', async function (req: RequestEvent, res, next) {
         debug('Event=%s', req.event.name);
         next();
     } catch (err) {
-        res.json({ error: err.message });
+        return res.status(404).json({ error: err.message });
     }
 });
 
-router.get('/:id', passport.authenticate('jwt', { session: false }), function (
-    req: RequestEvent,
-    res,
-    next
-) {
+router.get('/:id', Auth.jwt(), function (req: RequestEvent, res, next) {
     const debug = debugLib.extend('get/:id');
-    res.json(req.event);
+    const cmd = req.query.cmd;
+    if (!cmd) res.json(req.event);
+    switch (cmd) {
+        default:
+            return res.status(404).json({ error: 'wrong/missing cmd' });
+    }
 });
 
-router.get('/', passport.authenticate('jwt', { session: false }), async function (
-    req: RequestEvent,
-    res,
-    next
-) {
+router.get('/', Auth.jwt(), async function (req: RequestEvent, res, next) {
     const debug = debugLib.extend('get/');
     const cmd = req.query.cmd;
 
@@ -75,17 +72,23 @@ router.get('/', passport.authenticate('jwt', { session: false }), async function
                     // admin will see all events - even past ones
                     //q.$or = [{ startDate: undefined }, { startDate: { $gte: today } }]; // start-date not specified or greater then today
                 }
+
                 debug('Query %O', q);
-                const p = await Event.Model.find(q, {
-                    _id: 1,
-                    name: 1,
-                    startDate: 1,
-                });
-                r.result = 'ok';
-                r.list = p;
-                debug('Result %O', p);
+                try {
+                    const p = await Event.Model.find(q, {
+                        _id: 1,
+                        name: 1,
+                        startDate: 1,
+                    });
+                    debug('Result %O', p);
+                    return res.json(p);
+                } catch (err) {
+                    logERR('Error getting events from db. err=%s', err.message);
+                    res.status(500).json({ error: err.message });
+                }
             }
             break;
+        default:
+            return res.status(404).json({ error: 'wrong/missing cmd' });
     }
-    res.json(r);
 });

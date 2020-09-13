@@ -4,7 +4,7 @@ export namespace Event {
     interface Type_noID {
         recordActive?: boolean;
         name: string;
-        program: string;
+        program: string; // program will determine used event screen e.g. FLL2020 will use different screen/scorer as FLL2019
         startDate: Date;
         managers: string[];
         referees: string[];

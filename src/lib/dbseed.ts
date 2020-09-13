@@ -25,7 +25,6 @@ module.exports = function () {
             await deleteAll();
             await createAdmin('admin', 'admin');
             await seedUsers();
-            await seedTeams();
             await seedEvents();
             debug('Seed complete');
             return fulfill(true);
@@ -49,7 +48,7 @@ async function deleteAll() {
             async function (item, index) {
                 debug('Removing ' + item.t);
                 try {
-                    await item.m.collection.drop();
+                    await item.m.remove({});
                 } catch (err) {
                     console.log('Failed to drop %s err=$s', item.t, err.message);
                     reject(false);

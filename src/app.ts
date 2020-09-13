@@ -8,6 +8,7 @@ import path from 'path';
 import cors from 'cors';
 
 import { ENV } from './lib/env';
+import { Auth } from './lib/auth';
 
 const logERR = require('debug')('ERROR:app');
 const logWARN = require('debug')('WARN:app');
@@ -31,7 +32,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(cors());
 
 // configure passport authentication
-require('./lib/auth')(app);
+Auth.configure(app);
 
 // configure routes
 require('./routes')(app);

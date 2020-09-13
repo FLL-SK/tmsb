@@ -1,5 +1,5 @@
 import express, { Request } from 'express';
-import passport from 'passport';
+import { Auth } from '../lib/auth';
 
 const debugLib = require('debug')('profile.route');
 const logERR = require('debug')('ERROR:profile.route');
@@ -31,11 +31,7 @@ router.param('id', async function (req: RequestProfile, res, next) {
     }
 });
 
-router.get('/:id', passport.authenticate('jwt', { session: false }), function (
-    req: RequestProfile,
-    res,
-    next
-) {
+router.get('/:id', Auth.jwt(), function (req: RequestProfile, res, next) {
     const debug = debugLib.extend('get/:id');
     res.json(req.profile);
 });

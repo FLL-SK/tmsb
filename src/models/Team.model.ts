@@ -4,15 +4,12 @@ export namespace Team {
     interface Type_noID {
         name: string;
         recordActive?: boolean;
-        arrived?: boolean;
         orgName?: string;
         orgAddress?: string;
         orgAddress2?: string;
         orgTown?: string;
         orgPostCode?: string;
         coaches?: string[];
-        boysCount?: number;
-        girlsCount?: number;
     }
 
     export interface Type extends Type_noID {
@@ -25,15 +22,12 @@ export namespace Team {
         _id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
         recordActive: { type: Boolean, default: true },
         name: { type: String, required: true, unique: true },
-        arrived: { type: Boolean },
         orgName: { type: String },
         orgAddress: { type: String },
         orgAddress2: { type: String },
         orgTown: { type: String },
         orgPostCode: { type: String },
         coaches: [{ type: String, ref: 'User' }],
-        boysCount: { type: Number },
-        girlsCount: { type: Number },
     });
 
     export const Model = mongoose.model<Doc>('Team', _schema);
@@ -42,7 +36,6 @@ export namespace Team {
         return {
             _id: 'team' + num,
             name: 'Team ' + num,
-            arrived: idx ? idx % 2 > 0 : false,
             orgName: 'School ' + num,
             orgAddress: 'Street ' + num,
             orgAddress2: idx ? (idx % 2 ? 'Street long ' + num : undefined) : undefined,
