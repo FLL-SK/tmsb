@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 import { ENV } from '../lib/env';
 
-import { Team, User, Event } from '../models';
+import { Team, User, Event, EventTeam } from '../models';
 
 const debugLib = require('debug')('lib/dbseed');
 const logERR = require('debug')('ERROR:db-seed');
@@ -26,6 +26,7 @@ module.exports = function () {
             await createAdmin('admin', 'admin');
             await seedUsers();
             await seedEvents();
+            await seedEventTeams();
             debug('Seed complete');
             return fulfill(true);
         } catch (err) {
@@ -41,6 +42,7 @@ async function deleteAll() {
 
         await PromiseB.each(
             [
+                { m: EventTeam.Model, t: 'EventTeam', q: {} },
                 { m: Event.Model, t: 'Event', q: {} },
                 { m: Team.Model, t: 'Team', q: {} },
                 { m: User.Model, t: 'User', q: {} },
@@ -134,6 +136,37 @@ function seedEvents() {
                 reject(false);
             }
         });
+        fulfill(true);
+    });
+}
+
+function seedEventTeams() {
+    return new Promise(async function (fulfill, reject) {
+        const debug = debugLib.extend('seedEvtTeams');
+        debug('Seeding teams for events');
+        try {
+            const ev = await Event.Model.find({}); // get all events
+            for (const e of ev) {
+                for (let i = 1; i < Math.floor(Math.random() * 5) + 6; i++) {
+                    let ts = Math.floor(Math.random() * 10) + 1; // team size
+                    let b = Math.floor(Math.random() * ts) + 1; // number of boys
+
+                    const et: EventTeam.Type = {
+                        _id: e._id + ':' + i,
+                        eventId: e._id,
+                        name: 'Team ' + i + ' evt ' + e._id,
+                        boysCount: b,
+                        girlsCount: ts - b,
+                        results: [],
+                    };
+                    debug('Team= %s', et.name);
+                    await EventTeam.Model.create(et);
+                }
+            }
+        } catch (err) {
+            console.log('Error creating EventTeam, err=', err.message);
+            reject(false);
+        }
         fulfill(true);
     });
 }
