@@ -1,5 +1,6 @@
 import express, { Request } from 'express';
 import { Auth } from '../lib/auth';
+import { resErr } from '../lib/res';
 
 const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
@@ -29,7 +30,7 @@ router.param('id', async function (req: RequestEvent, res, next) {
         debug('Event=%s', req.event.name);
         next();
     } catch (err) {
-        return res.status(404).json({ error: err.message });
+        return resErr(res, 404, err.message);
     }
 });
 
@@ -39,7 +40,7 @@ router.get('/:id', Auth.jwt(), function (req: RequestEvent, res, next) {
     if (!cmd) res.json(req.event);
     switch (cmd) {
         default:
-            return res.status(404).json({ error: 'wrong/missing cmd' });
+            return resErr(res, 404, 'wrong/missing cmd');
     }
 });
 
@@ -84,11 +85,11 @@ router.get('/', Auth.jwt(), async function (req: RequestEvent, res, next) {
                     return res.json(p);
                 } catch (err) {
                     logERR('Error getting events from db. err=%s', err.message);
-                    res.status(500).json({ error: err.message });
+                    resErr(res, 500, err.message);
                 }
             }
             break;
         default:
-            return res.status(404).json({ error: 'wrong/missing cmd' });
+            return resErr(res, 404, 'wrong/missing cmd');
     }
 });
