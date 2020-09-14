@@ -6,7 +6,7 @@ const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
-import { Event } from '../models';
+import { Event, EventTeam } from '../models';
 import { MongooseFilterQuery } from 'mongoose';
 
 const router = express.Router();
@@ -34,11 +34,35 @@ router.param('id', async function (req: RequestEvent, res, next) {
     }
 });
 
-router.get('/:id', Auth.jwt(), function (req: RequestEvent, res, next) {
+router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
     const debug = debugLib.extend('get/:id');
     const cmd = req.query.cmd;
-    if (!cmd) res.json(req.event);
+
+    if (!req.event) return res.status(500).json({ error: 'internal error event-route' });
+
+    if (!cmd && req.event) {
+        try {
+            await req.event
+                .populate('managers', 'fullName')
+                .populate('judges', 'fullName')
+                .populate('referees', 'fullName')
+                .execPopulate();
+            debug('Event=%O', req.event);
+            return res.json(req.event);
+        } catch (err) {
+            return resErr(res, 500, err.message);
+        }
+    }
+
     switch (cmd) {
+        case 'getTeams':
+            try {
+                const l = await EventTeam.Model.find({ eventId: req.event._id }).exec();
+                return res.json(l);
+            } catch (err) {
+                logERR('Error getting teams for event %s', req.event._id);
+                return resErr(res, 500, err.message);
+            }
         default:
             return resErr(res, 404, 'wrong/missing cmd');
     }
