@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 import { ENV } from '../lib/env';
 
-import { Team, User, Event, EventTeam } from '../models';
+import { User, Event, EventTeam } from '../models';
 
 const debugLib = require('debug')('lib/dbseed');
 const logERR = require('debug')('ERROR:db-seed');
@@ -44,7 +44,6 @@ async function deleteAll() {
             [
                 { m: EventTeam.Model, t: 'EventTeam', q: {} },
                 { m: Event.Model, t: 'Event', q: {} },
-                { m: Team.Model, t: 'Team', q: {} },
                 { m: User.Model, t: 'User', q: {} },
             ],
             async function (item, index) {
@@ -97,23 +96,6 @@ function seedUsers() {
         await PromiseB.each(data, async function (item, index) {
             try {
                 await User.Model.create(item);
-            } catch (err) {
-                console.log('Error', err);
-                reject(false);
-            }
-        });
-        fulfill(true);
-    });
-}
-
-function seedTeams() {
-    const data = Team.testData_Array();
-    return new Promise(async function (fulfill, reject) {
-        const debug = debugLib.extend('seedTeams');
-        debug('Seeding teams');
-        await PromiseB.each(data, async function (item, index) {
-            try {
-                await Team.Model.create(item);
             } catch (err) {
                 console.log('Error', err);
                 reject(false);
