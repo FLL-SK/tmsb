@@ -5,6 +5,8 @@ export namespace EventTeam {
         eventId: string; // reference to Event
         name: string; // teams name on that specific event
         arrived?: boolean;
+        coachName?: string;
+        coachPhone?: string;
         boysCount?: number;
         girlsCount?: number;
         results: {
@@ -38,6 +40,8 @@ export namespace EventTeam {
         eventId: { type: String, ref: 'Event' },
         name: { type: String, required: true },
         arrived: { type: Boolean },
+        coachName: { type: String },
+        coachPhone: { type: String },
         boysCount: { type: Number, default: 0 },
         girlsCount: { type: Number, default: 0 },
         results: [{ type: _rschema }],

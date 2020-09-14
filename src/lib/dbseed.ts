@@ -137,6 +137,8 @@ function seedEventTeams() {
                         _id: e._id + ':' + i,
                         eventId: e._id,
                         name: 'Team ' + i + ' evt ' + e._id,
+                        coachName: 'Coach ' + i,
+                        coachPhone: 'Coach Phone 425-' + i,
                         boysCount: b,
                         girlsCount: ts - b,
                         results: [],
