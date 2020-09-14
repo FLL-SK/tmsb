@@ -1,9 +1,9 @@
 import express, { Request } from 'express';
 import { Auth } from '../lib/auth';
 
-const debugLib = require('debug')('event.route');
-const logERR = require('debug')('ERROR:event.route');
-const logWARN = require('debug')('WARN:event.route');
+const debugLib = require('debug')('route.event');
+const logERR = require('debug')('ERROR:route.event');
+const logWARN = require('debug')('WARN:route.event');
 
 import { Event } from '../models';
 import { MongooseFilterQuery } from 'mongoose';
