@@ -1,9 +1,9 @@
 import express, { Request } from 'express';
 import { Auth } from '../lib/auth';
 
-const debugLib = require('debug')('profile.route');
-const logERR = require('debug')('ERROR:profile.route');
-const logWARN = require('debug')('WARN:profile.route');
+const debugLib = require('debug')('route.profile');
+const logERR = require('debug')('ERROR:route.profile');
+const logWARN = require('debug')('WARN:route.profile');
 
 import { User } from '../models';
 

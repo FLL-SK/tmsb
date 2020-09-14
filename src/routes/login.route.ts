@@ -4,9 +4,9 @@ import jwt from 'jsonwebtoken';
 
 import { ENV } from '../lib/env';
 
-const debugLib = require('debug')('login.route');
-const logERR = require('debug')('ERROR:login.route');
-const logWARN = require('debug')('WARN:login.route');
+const debugLib = require('debug')('route.login');
+const logERR = require('debug')('ERROR:route.login');
+const logWARN = require('debug')('WARN:route.login');
 
 const router = express.Router();
 module.exports = router;
