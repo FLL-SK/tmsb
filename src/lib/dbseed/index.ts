@@ -1,15 +1,16 @@
-import mongoose from 'mongoose';
 import { Promise as PromiseB } from 'bluebird';
-import bcrypt from 'bcryptjs';
 
-import { ENV } from '../lib/env';
+import { ENV } from '../env';
 
-import { User, Event, EventTeam } from '../models';
+import { User, Event, EventTeam } from '../../models';
 
 const debugLib = require('debug')('lib/dbseed');
 const logERR = require('debug')('ERROR:db-seed');
 const logWARN = require('debug')('WARN:db-seed');
 const logINFO = require('debug')('INFO:db-seed');
+
+import { seedEvents } from './events';
+import { createAdmin, seedUsers } from './users';
 
 module.exports = function () {
     return new Promise(async function (fulfill, reject) {
@@ -27,6 +28,7 @@ module.exports = function () {
             await seedUsers();
             await seedEvents();
             await seedEventTeams();
+            await seedTeamRGSchedules();
             debug('Seed complete');
             return fulfill(true);
         } catch (err) {
@@ -60,68 +62,6 @@ async function deleteAll() {
     });
 }
 
-function createAdmin(email: string, password: string) {
-    return new Promise(async function (fulfill, reject) {
-        const debug = debugLib.extend('createAdmin');
-        debug('Creating admin user');
-        try {
-            var u = await User.Model.findOne({ email });
-            if (!u) {
-                const s = await bcrypt.genSalt(1);
-                const h = await bcrypt.hash(password, s);
-                u = await User.Model.create({
-                    password: h,
-                    fullName: 'System admin',
-                    isAdmin: true,
-                    isSuperAdmin: true,
-                    email: 'admin@admin.admin',
-                });
-                debug('Admin user created');
-            } else {
-                debug('Admin user already exists');
-            }
-            return fulfill(u);
-        } catch (err) {
-            logERR('Error creating Admin. %s', err.message);
-            return reject(err);
-        }
-    });
-}
-
-function seedUsers() {
-    const data = User.testData_Array();
-    return new Promise(async function (fulfill, reject) {
-        const debug = debugLib.extend('seedUsers');
-        debug('Seeding users');
-        await PromiseB.each(data, async function (item, index) {
-            try {
-                await User.Model.create(item);
-            } catch (err) {
-                console.log('Error', err);
-                reject(false);
-            }
-        });
-        fulfill(true);
-    });
-}
-
-function seedEvents() {
-    const data = Event.testData_Array(new Date());
-    return new Promise(async function (fulfill, reject) {
-        const debug = debugLib.extend('seedEvents');
-        debug('Seeding events');
-        await PromiseB.each(data, async function (item, index) {
-            try {
-                await Event.Model.create(item);
-            } catch (err) {
-                console.log('Error', err);
-                reject(false);
-            }
-        });
-        fulfill(true);
-    });
-}
-
 function seedEventTeams() {
     return new Promise(async function (fulfill, reject) {
         const debug = debugLib.extend('seedEvtTeams');
@@ -138,10 +78,9 @@ function seedEventTeams() {
                         eventId: e._id,
                         name: 'Team ' + i + ' evt ' + e._id,
                         coachName: 'Coach ' + i,
-                        coachPhone: 'Coach Phone 425-' + i,
+                        coachPhone: 'Coach Phone 555-' + i,
                         boysCount: b,
                         girlsCount: ts - b,
-                        results: [],
                     };
                     debug('Team= %s', et.name);
                     await EventTeam.Model.create(et);
@@ -150,6 +89,50 @@ function seedEventTeams() {
         } catch (err) {
             console.log('Error creating EventTeam, err=', err.message);
             reject(false);
+        }
+        fulfill(true);
+    });
+}
+
+interface _rgpair {
+    round: number;
+    table: string;
+    t1: string;
+    t2: string;
+}
+function createRGPairs(teams: string[], tables: string[]): _rgpair[] {
+    let pairs: _rgpair[] = [];
+    for (let r = 1; r < 4; r++) {
+        let t = 0;
+        for (let t1 = 0; t1 < teams.length - 1; t1 += 2) {
+            let p = { round: r, table: tables[t], t1: teams[t1], t2: teams[t1 + 1] };
+            t++;
+            if (t >= tables.length) t = 0;
+            pairs.push(p);
+        }
+    }
+    return pairs;
+}
+
+async function seedTeamRGSchedules() {
+    return new Promise(async function (fulfill, reject) {
+        const debug = debugLib.extend('seedTeamRGSchedules');
+        debug('Seeding RG Schedules');
+        const evts = await Event.Model.find({}).exec();
+        for (let e of evts) {
+            const t = await EventTeam.Model.find({ eventId: e._id })
+                .select({ _id: 1 })
+                .lean()
+                .exec();
+            let s = createRGPairs(
+                t.map((i) => i._id),
+                ['Table1', 'Table2']
+            );
+
+            //e.rgSchedule.addToSet(s);
+            s.forEach((i) => e.rgSchedule.push(i));
+            e.save();
+            debug('  Event %s pairs=%O', e.name, e.rgSchedule);
         }
         fulfill(true);
     });

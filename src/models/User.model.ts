@@ -51,48 +51,4 @@ export namespace User {
     };
 
     export const Model = mongoose.model<Doc>('User', _schema);
-
-    export function loremIpsum(name: string): Type {
-        return {
-            _id: name,
-            email: name + '@users.users',
-            fullName: 'FullName of ' + name,
-            password: name,
-        };
-    }
-
-    const list = [
-        'coach01',
-        'coach02',
-        'coach03',
-        'coach04',
-        'coach05',
-        'coach06',
-        'coach07',
-        'coach08',
-        'coach09',
-        'coach10',
-        'coach11',
-        'judgeTW01',
-        'judgeTW02',
-        'judgeIP01',
-        'judgeIP02',
-        'judgeRD01',
-        'judgeRD02',
-        'referee01',
-        'referee02',
-        'referee03',
-        'organizer01',
-        'organizer02',
-    ];
-
-    export function testData_Object(): { [key: string]: Type } {
-        const data = list.reduce((o, key) => ({ ...o, [key]: loremIpsum(key) }), {});
-        return data;
-    }
-
-    export function testData_Array(): Type[] {
-        const data = list.map((i) => loremIpsum(i));
-        return data;
-    }
 }
