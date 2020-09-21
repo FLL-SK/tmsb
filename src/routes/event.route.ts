@@ -6,26 +6,29 @@ const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
-import { Event, EventTeam, EventSetup } from '../models';
+import { Event, EventTeam, User } from '../models';
 import { MongooseFilterQuery } from 'mongoose';
 
 const router = express.Router();
 module.exports = router;
 
 interface RequestEvent extends Request {
-    event?: Event.Doc;
-    user?: any;
+    event?: Event.Doc | null;
+    user?: User.TypeRequest;
 }
 
 router.param('id', async function (req: RequestEvent, res, next) {
     const debug = debugLib.extend('param');
     const id = req.params.id;
-    let u;
     try {
-        u = await Event.Model.findById(id);
-        if (!u) throw new Error('event not found');
+        req.event = await Event.Model.findById(id).exec();
+        if (!req.event) throw new Error('event not found');
 
-        req.event = u;
+        if (req.user) {
+            if (req.event.managers.includes(req.user._id as string)) req.user.isEventManager = true;
+            if (req.event.judges.includes(req.user._id as string)) req.user.isEventJudge = true;
+            if (req.event.referees.includes(req.user._id as string)) req.user.isEventReferee = true;
+        }
 
         debug('Event=%s', req.event.name);
         next();
@@ -46,6 +49,8 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
                 .populate('managers', 'fullName')
                 .populate('judges', 'fullName')
                 .populate('referees', 'fullName')
+                .populate('rgSchedule.t1', 'name')
+                .populate('rgSchedule.t2', 'name')
                 .execPopulate();
             debug('Event=%O', req.event);
             return res.json(req.event);
@@ -80,39 +85,36 @@ router.get('/', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
     switch (cmd) {
         case 'getList':
-            {
-                debug('Going to get list of events query=%O', req.query);
-                const progId = req.query.program;
-                const managerId = req.query.manager;
-                const judgeId = req.query.judge;
-                const refereeId = req.query.referee;
+            debug('Going to get list of events query=%O', req.query);
+            const progId = req.query.program;
+            const managerId = req.query.manager;
+            const judgeId = req.query.judge;
+            const refereeId = req.query.referee;
 
-                let q: MongooseFilterQuery<Event.Doc> = { recordActive: true };
-                if (progId) q.programId = progId;
-                if (managerId) q.managers = managerId as string;
-                if (judgeId) q.judges = judgeId as string;
-                if (refereeId) q.referees = refereeId as string;
+            let q: MongooseFilterQuery<Event.Doc> = { recordActive: true };
+            if (progId) q.programId = progId;
+            if (managerId) q.managers = managerId as string;
+            if (judgeId) q.judges = judgeId as string;
+            if (refereeId) q.referees = refereeId as string;
 
-                if (!req.user.isAdmin) {
-                    // admin will see all events - even past ones
-                    //q.$or = [{ startDate: undefined }, { startDate: { $gte: today } }]; // start-date not specified or greater then today
-                }
-
-                debug('Query %O', q);
-                try {
-                    const p = await Event.Model.find(q, {
+            debug('Query %O', q);
+            try {
+                const p = await Event.Model.find(q)
+                    .select({
                         _id: 1,
                         name: 1,
                         startDate: 1,
-                    });
-                    debug('Result %O', p);
-                    return res.json(p);
-                } catch (err) {
-                    logERR('Error getting events from db. err=%s', err.message);
-                    resErr(res, 500, err.message);
-                }
+                    })
+                    .exec();
+                debug('Result %O', p);
+                return res.json(p);
+            } catch (err) {
+                logERR('Error getting events from db. err=%s', err.message);
+                resErr(res, 500, err.message);
             }
+
             break;
+
         default:
             return resErr(res, 404, 'wrong/missing cmd');
     }
