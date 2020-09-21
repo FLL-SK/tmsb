@@ -3,8 +3,6 @@ import { ENV } from './env';
 const localStrategy = require('passport-local').Strategy;
 const JWTstrategy = require('passport-jwt').Strategy;
 const ExtractJWT = require('passport-jwt').ExtractJwt;
-import bcrypt from 'bcryptjs';
-import mongoose from 'mongoose';
 
 import { User } from '../models';
 import { Application } from 'express';
@@ -56,7 +54,10 @@ export namespace Auth {
                     const debug = debugLib.extend('login');
                     debug('Authenticating using username=%s', username);
                     try {
-                        const user = await User.Model.findOne({ email: username }).exec();
+                        const user = await User.Model.findOne({
+                            email: username,
+                            recordActive: true,
+                        }).exec();
                         if (!user || !user.isValidPassword(password)) {
                             debug('User not found or wrong password.');
                             return done(null, false);
@@ -82,11 +83,10 @@ export namespace Auth {
                     const debug = debugLib.extend('jwt');
                     try {
                         debug('Authenticating using JWT=%O', payload);
-                        const u = await User.Model.findById(
-                            payload._id,
-                            { password: 0 },
-                            { lean: true }
-                        );
+                        const u = await User.Model.findOne({ _id: payload._id, recordActive: true })
+                            .select({ password: 0 })
+                            .lean()
+                            .exec();
 
                         if (!u) return done(null, false);
 
