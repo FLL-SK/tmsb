@@ -13,7 +13,7 @@ export namespace User {
     }
 
     export interface Type extends Type_noID {
-        _id?: string;
+        _id?: Types.ObjectId;
     }
 
     export interface TypeRequest extends Type {
@@ -28,7 +28,7 @@ export namespace User {
     }
 
     const _schema: Schema = new Schema({
-        _id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
+        //_id: { type: String, default: mongoose.Types.ObjectId(), unique: true },
         email: { type: String, required: true, unique: true },
         fullName: { type: String },
         password: { type: String, required: true },

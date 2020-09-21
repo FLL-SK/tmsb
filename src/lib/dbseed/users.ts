@@ -68,7 +68,6 @@ export function seedUsers() {
         await PromiseB.each(userData, async function (name, index) {
             try {
                 let u = new User.Model({
-                    _id: name,
                     email: name + '@users.users',
                     fullName: 'FullName of ' + name,
                     password: name,

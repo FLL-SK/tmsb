@@ -5,41 +5,36 @@ const logERR = require('debug')('ERROR:db-seed');
 const logWARN = require('debug')('WARN:db-seed');
 const logINFO = require('debug')('INFO:db-seed');
 
-import { Event } from '../../models';
+import { Event, User } from '../../models';
 
 const eventData = [
     {
-        _id: 'KE01',
         offset: 0,
-        name: 'Kosice now',
+        name: 'KE01 Kosice now',
         program: 'FLL2020',
         rgType: 'S',
     },
     {
-        _id: 'KE02',
         offset: -365,
-        name: 'Kosice las year',
+        name: 'KE02 Kosice las year',
         program: 'FLL2019',
         rgType: 'S',
     },
     {
-        _id: 'BA01',
         offset: 0,
-        name: 'Bratislava now',
+        name: 'BA01 Bratislava now',
         program: 'FLL2020',
         rgType: 'S',
     },
     {
-        _id: 'BA02',
         offset: 1,
-        name: 'Bratislava tomorrow',
+        name: 'BA02 Bratislava tomorrow',
         program: 'FLL2020',
         rgType: 'S',
     },
     {
-        _id: 'ZA01',
         offset: -1,
-        name: 'Zilina yesterday',
+        name: 'ZA01 Zilina yesterday',
         program: 'FLL2020',
         rgType: 'S',
     },
@@ -79,10 +74,20 @@ export function seedEvents() {
         debug('Seeding events');
         await PromiseB.each(eventData, async function (item, index) {
             try {
+                debug('Event %s', item.name);
                 let e = new Event.Model(item);
-                eventData2[index].managers.forEach((i) => e.managers.push(i));
-                eventData2[index].judges.forEach((i) => e.judges.push(i));
-                eventData2[index].referees.forEach((i) => e.referees.push(i));
+                for (let i of eventData2[index].managers) {
+                    let u = await User.Model.findOne({ email: i + '@users.users' }).exec();
+                    if (u) e.managers.push(u._id);
+                }
+                for (let i of eventData2[index].judges) {
+                    let u = await User.Model.findOne({ email: i + '@users.users' }).exec();
+                    if (u) e.judges.push(u._id);
+                }
+                for (let i of eventData2[index].referees) {
+                    let u = await User.Model.findOne({ email: i + '@users.users' }).exec();
+                    if (u) e.referees.push(u._id);
+                }
                 await e.save();
             } catch (err) {
                 console.log('Error', err);
