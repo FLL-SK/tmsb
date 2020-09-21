@@ -1,19 +1,26 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export namespace User {
     // internal type used only for creating Doc type below - _id was in conflict
     interface Type_noID {
-        email: string;
+        email?: string;
         fullName?: string;
-        password: string;
+        password?: string;
         recordActive?: boolean;
         isAdmin?: boolean;
         isSuperAdmin?: boolean;
     }
 
-    interface Type extends Type_noID {
+    export interface Type extends Type_noID {
         _id?: string;
+    }
+
+    export interface TypeRequest extends Type {
+        isEventManager?: boolean; // not in database, set when managing event
+        isEventJudge?: boolean; // not in database, set when managing event
+        isEventReferee?: boolean; // not in database, set when managing event
+        isTeamCoach?: boolean; // not in database, set when managing team
     }
 
     export interface Doc extends Type_noID, Document {
@@ -35,7 +42,7 @@ export namespace User {
         const user = this as Doc;
         //Hash the password with a salt round of 10, the higher the rounds the more secure, but the slower
         //your application becomes.
-        const hash = await bcrypt.hash(user.password, 10);
+        const hash = await bcrypt.hash(user.password || '', 10);
         //Replace the plain text password with the hash and then store it
         user.password = hash;
         //Indicates we're done and moves on to the next middleware
