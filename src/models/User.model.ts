@@ -13,7 +13,7 @@ export namespace User {
     }
 
     interface Type extends Type_noID {
-        _id: string;
+        _id?: string;
     }
 
     export interface Doc extends Type_noID, Document {

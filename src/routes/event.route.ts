@@ -6,7 +6,7 @@ const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
-import { Event, EventTeam } from '../models';
+import { Event, EventTeam, EventSetup } from '../models';
 import { MongooseFilterQuery } from 'mongoose';
 
 const router = express.Router();

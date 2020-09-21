@@ -12,7 +12,7 @@ export namespace Event {
     }
 
     export interface Type extends Type_noID {
-        _id: string;
+        _id?: string;
     }
 
     export interface Doc extends Document, Type_noID {}
