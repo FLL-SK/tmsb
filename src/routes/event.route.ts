@@ -7,7 +7,7 @@ const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
 import { Event, EventTeam, User } from '../models';
-import { MongooseFilterQuery } from 'mongoose';
+import { MongooseFilterQuery, Types } from 'mongoose';
 
 const router = express.Router();
 module.exports = router;
@@ -25,9 +25,12 @@ router.param('id', async function (req: RequestEvent, res, next) {
         if (!req.event) throw new Error('event not found');
 
         if (req.user) {
-            if (req.event.managers.includes(req.user._id as string)) req.user.isEventManager = true;
-            if (req.event.judges.includes(req.user._id as string)) req.user.isEventJudge = true;
-            if (req.event.referees.includes(req.user._id as string)) req.user.isEventReferee = true;
+            if (req.event.managers.includes(req.user._id as Types.ObjectId))
+                req.user.isEventManager = true;
+            if (req.event.judges.includes(req.user._id as Types.ObjectId))
+                req.user.isEventJudge = true;
+            if (req.event.referees.includes(req.user._id as Types.ObjectId))
+                req.user.isEventReferee = true;
         }
 
         debug('Event=%s', req.event.name);

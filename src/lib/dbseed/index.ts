@@ -1,4 +1,5 @@
 import { Promise as PromiseB } from 'bluebird';
+import { Types } from 'mongoose';
 
 import { ENV } from '../env';
 
@@ -74,9 +75,8 @@ function seedEventTeams() {
                     let b = Math.floor(Math.random() * ts) + 1; // number of boys
 
                     const et: EventTeam.Type = {
-                        _id: e._id + ':' + i,
                         eventId: e._id,
-                        name: 'Team ' + i + ' evt ' + e._id,
+                        name: 'Team ' + i + ' evt ' + e.name.slice(0, 4),
                         coachName: 'Coach ' + i,
                         coachPhone: 'Coach Phone 555-' + i,
                         boysCount: b,
@@ -97,10 +97,10 @@ function seedEventTeams() {
 interface _rgpair {
     round: number;
     table: string;
-    t1: string;
-    t2: string;
+    t1: Types.ObjectId;
+    t2: Types.ObjectId;
 }
-function createRGPairs(teams: string[], tables: string[]): _rgpair[] {
+function createRGPairs(teams: Types.ObjectId[], tables: string[]): _rgpair[] {
     let pairs: _rgpair[] = [];
     for (let r = 1; r < 4; r++) {
         let t = 0;
