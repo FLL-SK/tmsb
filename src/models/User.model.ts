@@ -5,6 +5,7 @@ export namespace User {
     // internal type used only for creating Doc type below - _id was in conflict
     interface Type_noID {
         email?: string;
+        eventId?: Types.ObjectId; // special accounts of users created especially for specific event
         fullName?: string;
         password?: string;
         recordActive?: boolean;
@@ -28,13 +29,13 @@ export namespace User {
     }
 
     const _schema: Schema = new Schema({
-        //_id: { type: String, default: mongoose.Types.ObjectId(), unique: true },
         email: { type: String, required: true, unique: true },
         fullName: { type: String },
         password: { type: String, required: true },
         recordActive: { type: Boolean, default: true },
         isAdmin: { type: Boolean },
         isSuperAdmin: { type: Boolean },
+        eventId: { type: mongoose.Types.ObjectId, ref: 'Event' },
     });
 
     _schema.pre('save', async function (next) {
