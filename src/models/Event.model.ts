@@ -18,6 +18,7 @@ export namespace Event {
         judges: Types.Array<Types.ObjectId>; // lis of judges
         rgType: string; // 'S' = preliminary->semifinals->finals, 'Q' = preliminary->quarterfinals->semifinals->finals
         rgSchedule: Types.Array<_rgSchedule>; // pairs for robot-game initial rounds
+        status: number; // 0 = not started, 1 - in progress, 2 - finished
     }
 
     export interface Type extends Type_noID {
@@ -47,6 +48,7 @@ export namespace Event {
         judges: [{ type: mongoose.Types.ObjectId, ref: 'User' }],
         rgType: { type: String, default: 'S', required: true },
         rgSchedule: [{ type: _rgpSchema, required: true }],
+        status: { type: Number, default: 0 },
     });
 
     export const Model = mongoose.model<Doc>('Event', _schema);
