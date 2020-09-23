@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export namespace Score {
     interface Type_noID {
         eventTeamId: string; // reference to EventTeam
+        rank?: number;
         coreValues?: number;
         project?: number;
         design?: number;
@@ -66,6 +67,7 @@ export namespace Score {
     export const schema: Schema = new Schema({
         _id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
         eventTeamId: { type: String, ref: 'EventTeam' },
+        rank: { type: Number, default: 0 },
         coreValues: { type: Number },
         project: { type: Number },
         design: { type: Number },

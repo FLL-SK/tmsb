@@ -6,8 +6,8 @@ const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
-import { Event, EventTeam, User, Score } from '../models';
-import mongoose, { MongooseFilterQuery, Types, Schema, SchemaType, Mongoose } from 'mongoose';
+import { Event, EventTeam, Score, User } from '../models';
+import mongoose, { MongooseFilterQuery, Types } from 'mongoose';
 
 const router = express.Router();
 module.exports = router;
@@ -59,6 +59,7 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
     const cmd = req.query.cmd;
 
     if (!req.event) return res.status(500).json({ error: 'internal error event-route' });
+    if (!req.user) return res.status(401).json({ error: 'not authorized' }); // for the sake of typescript
 
     getRoles(req.user, req.event, debug);
 
@@ -72,6 +73,49 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
     }
 
     switch (cmd) {
+        case 'getRanking':
+            debug('Going to get ranking table for all teams event=%s', req.event.name);
+            try {
+                let t1 = await EventTeam.Model.find({ eventId: req.event._id })
+                    .select({ _id: 1 })
+                    .lean()
+                    .exec();
+                let t2: string[] = t1.map((t) => t._id); // map to simple array of ids
+                debug('Teams=%O', t2);
+
+                let ranking = await Score.Model.find({
+                    eventTeamId: { $in: t2 },
+                })
+                    .lean()
+                    .exec();
+                debug('Ranking=%O', ranking);
+
+                // if user is not judge, referee, event manager or admin, then do not show scores
+                if (
+                    !(
+                        req.user.isAdmin ||
+                        req.user.isEventManager ||
+                        req.user.isEventJudge ||
+                        req.user.isEventReferee
+                    )
+                ) {
+                    ranking = ranking.map((i) => {
+                        return {
+                            ...i,
+                            corevalues: undefined,
+                            project: undefined,
+                            design: undefined,
+                            judgingDetails: [],
+                            gameDetails: [],
+                        };
+                    });
+                }
+                return res.json(ranking);
+            } catch (err) {
+                logERR('Error getting ranking for event %s err=%s', req.event._id, err.message);
+                return resErr(res, 500, err.message);
+            }
+            break;
         case 'getTeams':
             try {
                 const l = await EventTeam.Model.find({ eventId: req.event._id }).exec();
@@ -148,25 +192,17 @@ router.get('/', Auth.jwt(), async function (req: RequestEvent, res, next) {
     switch (cmd) {
         case 'getList':
             debug('Going to get list of events query=%O', req.query);
-            const progId = req.query.program;
-            const managerId = req.query.manager;
-            const judgeId = req.query.judge;
-            const refereeId = req.query.referee;
 
             let q: MongooseFilterQuery<Event.Doc> = { recordActive: true };
-            if (progId) q.programId = progId;
-            if (managerId) q.managers = managerId as string;
-            if (judgeId) q.judges = judgeId as string;
-            if (refereeId) q.referees = refereeId as string;
+            if (req.query.program) q.programId = req.query.program;
+            if (req.query.manager) q.managers = req.query.manager;
+            if (req.query.judge) q.judges = req.query.judge;
+            if (req.query.referee) q.referees = req.query.referee;
 
             debug('Query %O', q);
             try {
                 const p = await Event.Model.find(q)
-                    .select({
-                        _id: 1,
-                        name: 1,
-                        startDate: 1,
-                    })
+                    .select({ _id: 1, name: 1, startDate: 1 })
                     .exec();
                 debug('Result %O', p);
                 return res.json(p);
