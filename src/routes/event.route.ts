@@ -17,19 +17,21 @@ interface RequestEvent extends Request {
     user?: User.TypeRequest;
 }
 
-function getRoles(req: any, debug: any) {
-    if (req.user) {
-        debug('Event managers %O', req.event.managers);
-        if (req.event.managers.includes(req.user._id as Types.ObjectId))
-            req.user.isEventManager = true;
-        if (req.event.judges.includes(req.user._id as Types.ObjectId)) req.user.isEventJudge = true;
-        if (req.event.referees.includes(req.user._id as Types.ObjectId))
-            req.user.isEventReferee = true;
+function getRoles(
+    user: User.TypeRequest | undefined | null,
+    event: Event.Type | undefined | null,
+    debug: any
+) {
+    if (user && event) {
+        debug('Event managers %O', event.managers);
+        if (event.managers.includes(user._id as Types.ObjectId)) user.isEventManager = true;
+        if (event.judges.includes(user._id as Types.ObjectId)) user.isEventJudge = true;
+        if (event.referees.includes(user._id as Types.ObjectId)) user.isEventReferee = true;
     }
 }
 
-async function populateEvent(req: any) {
-    return req.event
+async function populateEvent(event: Event.Doc) {
+    return event
         .populate('managers', 'fullName')
         .populate('judges', 'fullName')
         .populate('referees', 'fullName')
@@ -58,11 +60,11 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
     if (!req.event) return res.status(500).json({ error: 'internal error event-route' });
 
-    getRoles(req, debug);
+    getRoles(req.user, req.event, debug);
 
     if (!cmd && req.event) {
         try {
-            await populateEvent(req);
+            await populateEvent(req.event);
             return res.json(req.event);
         } catch (err) {
             return resErr(res, 500, err.message);
@@ -87,7 +89,7 @@ router.post('/:id/fields', Auth.jwt(), async function (req: RequestEvent, res, n
     let debug = debugLib.extend('post/:id/fields');
     debug('/event/:ID/fields - post');
 
-    getRoles(req, debug);
+    getRoles(req.user, req.event, debug);
 
     debug('Body %O', req.body);
     debug('User %O', req.user);
@@ -129,7 +131,7 @@ router.post('/:id/fields', Auth.jwt(), async function (req: RequestEvent, res, n
         return resErr(res, 500, 'error updating field');
     }
 
-    await populateEvent(req);
+    await populateEvent(req.event);
     res.json(req.event);
 });
 
