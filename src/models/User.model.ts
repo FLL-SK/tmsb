@@ -28,7 +28,7 @@ export namespace User {
         isValidPassword: (password: string) => boolean;
     }
 
-    const _schema: Schema = new Schema({
+    export const schema: Schema = new Schema({
         email: { type: String, required: true, unique: true },
         fullName: { type: String },
         password: { type: String, required: true },
@@ -38,7 +38,7 @@ export namespace User {
         eventId: { type: mongoose.Types.ObjectId, ref: 'Event' },
     });
 
-    _schema.pre('save', async function (next) {
+    schema.pre('save', async function (next) {
         //'this' refers to the current document about to be saved
         const user = this as Doc;
         //Hash the password with a salt round of 10, the higher the rounds the more secure, but the slower
@@ -50,7 +50,7 @@ export namespace User {
         next();
     });
 
-    _schema.methods.isValidPassword = async function (password: string) {
+    schema.methods.isValidPassword = async function (password: string) {
         const user = this;
         //Hashes the password sent by the user for login and checks if the hashed password stored in the
         //database matches the one sent. Returns true if it does else false.
@@ -58,5 +58,5 @@ export namespace User {
         return compare;
     };
 
-    export const Model = mongoose.model<Doc>('User', _schema);
+    export const Model = mongoose.model<Doc>('User', schema);
 }

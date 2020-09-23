@@ -57,7 +57,7 @@ export namespace ScoreFLL {
         { id: false, _id: false }
     );
 
-    const _schema: Schema = new Schema({
+    export const schema: Schema = new Schema({
         _id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
         eventTeamId: { type: String, ref: 'EventTeam' },
         coreValues: { type: Number },
@@ -68,5 +68,5 @@ export namespace ScoreFLL {
         judgingDetails: [{ type: _judgingSchema }],
     });
 
-    export const Model = mongoose.model<Doc>('ScoreFLL', _schema);
+    export const Model = mongoose.model<Doc>('ScoreFLL', schema);
 }

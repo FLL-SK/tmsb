@@ -37,7 +37,7 @@ export namespace Event {
         { id: false, _id: false }
     );
 
-    const _schema: Schema = new Schema({
+    export const schema: Schema = new Schema({
         //_id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
         recordActive: { type: Boolean, default: true },
         name: { type: String, required: true, unique: true },
@@ -51,5 +51,5 @@ export namespace Event {
         status: { type: Number, default: 0 },
     });
 
-    export const Model = mongoose.model<Doc>('Event', _schema);
+    export const Model = mongoose.model<Doc>('Event', schema);
 }

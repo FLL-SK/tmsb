@@ -17,7 +17,7 @@ export namespace EventTeam {
 
     export interface Doc extends Document, Type_noID {}
 
-    const _schema: Schema = new Schema({
+    export const schema: Schema = new Schema({
         //_id: { type: String, default: mongoose.Types.ObjectId().toHexString(), unique: true },
         eventId: { type: mongoose.Types.ObjectId, ref: 'Event' },
         name: { type: String, required: true },
@@ -28,5 +28,5 @@ export namespace EventTeam {
         girlsCount: { type: Number, default: 0 },
     });
 
-    export const Model = mongoose.model<Doc>('EventTeam', _schema);
+    export const Model = mongoose.model<Doc>('EventTeam', schema);
 }
