@@ -13,16 +13,16 @@ const logINFO = require('debug')('INFO:db-seed');
 import { seedEvents } from './events';
 import { createAdmin, seedUsers } from './users';
 
-module.exports = function () {
+export function seedDB() {
     return new Promise(async function (fulfill, reject) {
         const debug = debugLib.extend('init');
         try {
             await createAdmin('admin@admin.admin', 'admin');
             if (ENV.ENV.toLowerCase() !== 'dev') {
-                debug('Not DEV environment - skipping seed');
+                logINFO('Not DEV environment - skipping seed');
                 return fulfill(true);
             }
-            debug('Creating seed data');
+            logINFO('Seeding test data');
             const data = {};
             await deleteAll();
             await createAdmin('admin', 'admin');
@@ -30,14 +30,14 @@ module.exports = function () {
             await seedEvents();
             await seedEventTeams();
             await seedTeamRGSchedules();
-            debug('Seed complete');
+            logINFO('Test data ready');
             return fulfill(true);
         } catch (err) {
-            logERR('SEED error err=%s', err.message);
+            logERR('error err=%s', err.message);
             return reject(err);
         }
     });
-};
+}
 
 async function deleteAll() {
     return new Promise(async function (fulfill, reject) {

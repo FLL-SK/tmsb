@@ -13,7 +13,7 @@ const url =
     '/' +
     process.env.DB_DATABASE;
 
-module.exports = function () {
+export function connectDB() {
     return new Promise(async function (fulfill, reject) {
         const debug = debugLib.extend('init');
         try {
@@ -42,4 +42,4 @@ module.exports = function () {
             return reject(err);
         }
     });
-};
+}

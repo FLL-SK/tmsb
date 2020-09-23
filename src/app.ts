@@ -10,19 +10,16 @@ import cors from 'cors';
 import { ENV } from './lib/env';
 import { Auth } from './lib/auth';
 
+import { seedDB } from './lib/dbseed';
+import { connectDB } from './lib/db';
+
 const logERR = require('debug')('ERROR:app');
 const logWARN = require('debug')('WARN:app');
 
 const app: Application = express();
 
-// initialize database connection
-require('./lib/db')();
-
 // initialize mongoose models
 require('./models');
-
-// initialize database + load seed data in DEV env
-require('./lib/dbseed')();
 
 app.use(favicon(path.join(__dirname, '../public', 'favicon.ico')));
 app.use(logger('tiny'));
@@ -44,6 +41,15 @@ app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
     res.json({ error: err });
 });
 
-app.listen(ENV.PORT, () => {
-    console.log('Server started at', ENV.PORT);
-});
+// initialize database connection
+connectDB()
+    .then(
+        // initialize database + load seed data in DEV env
+        () => seedDB()
+    )
+    .then(() =>
+        // listen for requests
+        app.listen(ENV.PORT, () => {
+            console.log('Server started at', ENV.PORT);
+        })
+    );
