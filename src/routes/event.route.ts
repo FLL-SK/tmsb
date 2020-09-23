@@ -6,8 +6,8 @@ const debugLib = require('debug')('route.event');
 const logERR = require('debug')('ERROR:route.event');
 const logWARN = require('debug')('WARN:route.event');
 
-import { Event, EventTeam, User } from '../models';
-import { MongooseFilterQuery, Types } from 'mongoose';
+import { Event, EventTeam, User, Score } from '../models';
+import mongoose, { MongooseFilterQuery, Types, Schema, SchemaType, Mongoose } from 'mongoose';
 
 const router = express.Router();
 module.exports = router;
@@ -17,22 +17,34 @@ interface RequestEvent extends Request {
     user?: User.TypeRequest;
 }
 
+function getRoles(req: any, debug: any) {
+    if (req.user) {
+        debug('Event managers %O', req.event.managers);
+        if (req.event.managers.includes(req.user._id as Types.ObjectId))
+            req.user.isEventManager = true;
+        if (req.event.judges.includes(req.user._id as Types.ObjectId)) req.user.isEventJudge = true;
+        if (req.event.referees.includes(req.user._id as Types.ObjectId))
+            req.user.isEventReferee = true;
+    }
+}
+
+async function populateEvent(req: any) {
+    return req.event
+        .populate('managers', 'fullName')
+        .populate('judges', 'fullName')
+        .populate('referees', 'fullName')
+        .populate('rgSchedule.t1', 'name')
+        .populate('rgSchedule.t2', 'name')
+        .execPopulate();
+}
+
 router.param('id', async function (req: RequestEvent, res, next) {
     const debug = debugLib.extend('param');
     const id = req.params.id;
+
     try {
         req.event = await Event.Model.findById(id).exec();
         if (!req.event) throw new Error('event not found');
-
-        if (req.user) {
-            if (req.event.managers.includes(req.user._id as Types.ObjectId))
-                req.user.isEventManager = true;
-            if (req.event.judges.includes(req.user._id as Types.ObjectId))
-                req.user.isEventJudge = true;
-            if (req.event.referees.includes(req.user._id as Types.ObjectId))
-                req.user.isEventReferee = true;
-        }
-
         debug('Event=%s', req.event.name);
         next();
     } catch (err) {
@@ -46,16 +58,11 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
     if (!req.event) return res.status(500).json({ error: 'internal error event-route' });
 
+    getRoles(req, debug);
+
     if (!cmd && req.event) {
         try {
-            await req.event
-                .populate('managers', 'fullName')
-                .populate('judges', 'fullName')
-                .populate('referees', 'fullName')
-                .populate('rgSchedule.t1', 'name')
-                .populate('rgSchedule.t2', 'name')
-                .execPopulate();
-            debug('Event=%O', req.event);
+            await populateEvent(req);
             return res.json(req.event);
         } catch (err) {
             return resErr(res, 500, err.message);
