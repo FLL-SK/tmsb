@@ -1,12 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export namespace ScoreFLL {
+export namespace Score {
     interface Type_noID {
         eventTeamId: string; // reference to EventTeam
         coreValues?: number;
         project?: number;
         design?: number;
         game?: number;
+        game1?: number; //
+        game2?: number; //
+        game3?: number; //
+        gameQ?: number; // quarter-finals score
+        gameS?: number; // semi-finals score
+        gameF?: number; // finals score
         judgingDetails: {
             type: string;
             submitedOn?: Date;
@@ -18,11 +24,11 @@ export namespace ScoreFLL {
             four: number;
         }[];
         gameDetails: {
-            type: string;
+            type: string; //R1, R2, R3, R1-PO, R2-PO, R3-PO, Q, Q-PO, S, S-PO, F, F-PO
             submitedOn?: Date;
             submitedBy?: string;
             score: number;
-            missions: string;
+            missions: string; // details of completed missions
         }[];
     }
 
@@ -64,9 +70,15 @@ export namespace ScoreFLL {
         project: { type: Number },
         design: { type: Number },
         game: { type: Number },
+        game1: { type: Number },
+        game2: { type: Number },
+        game3: { type: Number },
+        gameQ: { type: Number },
+        gameS: { type: Number },
+        gameF: { type: Number },
         gameDetails: [{ type: _gameSchema }],
         judgingDetails: [{ type: _judgingSchema }],
     });
 
-    export const Model = mongoose.model<Doc>('ScoreFLL', schema);
+    export const Model = mongoose.model<Doc>('Score', schema);
 }
