@@ -73,8 +73,8 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
     }
 
     switch (cmd) {
-        case 'getRanking':
-            debug('Going to get ranking table for all teams event=%s', req.event.name);
+        case 'getScores':
+            debug('Going to get score table for all teams event=%s', req.event.name);
             try {
                 let t1 = await EventTeam.Model.find({ eventId: req.event._id })
                     .select({ _id: 1 })
@@ -83,12 +83,12 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
                 let t2: string[] = t1.map((t) => t._id); // map to simple array of ids
                 debug('Teams=%O', t2);
 
-                let ranking = await Score.Model.find({
+                let scores = await Score.Model.find({
                     eventTeamId: { $in: t2 },
                 })
                     .lean()
                     .exec();
-                debug('Ranking=%O', ranking);
+                debug('Scores=%O', scores);
 
                 // if user is not judge, referee, event manager or admin, then do not show scores
                 if (
@@ -99,7 +99,7 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
                         req.user.isEventReferee
                     )
                 ) {
-                    ranking = ranking.map((i) => {
+                    scores = scores.map((i) => {
                         return {
                             ...i,
                             corevalues: undefined,
@@ -110,7 +110,7 @@ router.get('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
                         };
                     });
                 }
-                return res.json(ranking);
+                return res.json(scores);
             } catch (err) {
                 logERR('Error getting ranking for event %s err=%s', req.event._id, err.message);
                 return resErr(res, 500, err.message);
