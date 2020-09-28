@@ -173,7 +173,8 @@ router.post('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
             }
 
             let gs = {
-                type: req.body.type,
+                round: req.body.type,
+                table: req.body.place,
                 submitedOn: new Date(),
                 submitedBy: req.user._id?.toHexString() || 'unknown',
                 score: req.body.score,

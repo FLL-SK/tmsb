@@ -25,9 +25,10 @@ export namespace Score {
             four: number;
         }[];
         gameDetails: {
-            type: string; //R1, R2, R3, R1-PO, R2-PO, R3-PO, Q, Q-PO, S, S-PO, F, F-PO
             submitedOn?: Date;
             submitedBy?: string;
+            round: string; //1, 2, 3, PO, Q, Q-PO, S, S-PO, F, F-PO
+            table: string;
             score: number;
             missions: string; // details of completed missions
         }[];
@@ -55,7 +56,8 @@ export namespace Score {
 
     const _gameSchema: Schema = new Schema(
         {
-            type: { type: String, required: true },
+            round: { type: String, required: true },
+            table: { type: String, required: true },
             submitedOn: { type: Date, required: true, default: new Date() },
             submitedBy: { type: String, ref: 'User', required: true },
             score: { type: Number, default: 0 },
