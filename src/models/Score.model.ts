@@ -1,6 +1,27 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export namespace Score {
+    export interface JudgingDetails {
+        type: string; // V, P, D
+        room: string;
+        submitedOn: Date;
+        submitedBy: string;
+        score: number;
+        beginning: number;
+        developing: number;
+        accomplished: number;
+        exceeds: number;
+    }
+
+    export interface GameDetails {
+        round: string; //1, 2, 3, PO, Q, Q-PO, S, S-PO, F, F-PO
+        table: string;
+        submitedOn: Date;
+        submitedBy: string;
+        score: number;
+        missions: string; // details of completed missions
+    }
+
     interface Type_noID {
         eventTeamId: string; // reference to EventTeam
         coreValues?: number;
@@ -13,25 +34,8 @@ export namespace Score {
         gameQ?: number; // quarter-finals score
         gameS?: number; // semi-finals score
         gameF?: number; // finals score
-        judgingDetails: {
-            type: string; // V, P, D
-            room: string;
-            submitedOn: Date;
-            submitedBy: string;
-            score: number;
-            one: number;
-            two: number;
-            three: number;
-            four: number;
-        }[];
-        gameDetails: {
-            round: string; //1, 2, 3, PO, Q, Q-PO, S, S-PO, F, F-PO
-            table: string;
-            submitedOn: Date;
-            submitedBy: string;
-            score: number;
-            missions: string; // details of completed missions
-        }[];
+        judgingDetails: JudgingDetails[];
+        gameDetails: GameDetails[];
     }
 
     export interface Type extends Type_noID {
@@ -47,10 +51,10 @@ export namespace Score {
             submitedOn: { type: Date, required: true, default: new Date() },
             submitedBy: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
             score: { type: Number, default: 0 },
-            one: { type: Number, default: 0 },
-            two: { type: Number, default: 0 },
-            three: { type: Number, default: 0 },
-            four: { type: Number, default: 0 },
+            beginning: { type: Number, default: 0 },
+            developing: { type: Number, default: 0 },
+            accomplished: { type: Number, default: 0 },
+            exceeds: { type: Number, default: 0 },
         },
         { id: false, _id: false }
     );

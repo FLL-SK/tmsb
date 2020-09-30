@@ -148,50 +148,107 @@ router.post('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
     switch (cmd) {
         case 'postGameScore':
-            // only Admin/evemt manager/referee can post
-            if (!req.user.isAdmin && !req.user.isEventManager && !req.user.isEventReferee)
-                return resErr(res, 401, 'auth', 'permission denied');
+            {
+                // only Admin/evemt manager/referee can post
+                if (!req.user.isAdmin && !req.user.isEventManager && !req.user.isEventReferee)
+                    return resErr(res, 401, 'auth', 'permission denied');
 
-            const etId = req.body.eventTeamId;
-            let t;
-            try {
-                t = await EventTeam.Model.findById(etId).select({ _id: 1 }).lean().exec();
-            } catch (err) {
-                logERR('Error getting event-teamid=%s err=%s', etId, err.message);
+                const etId = req.body.eventTeamId;
+                let t;
+                try {
+                    t = await EventTeam.Model.findById(etId).select({ _id: 1 }).lean().exec();
+                } catch (err) {
+                    logERR('Error getting event-teamid=%s err=%s', etId, err.message);
+                }
+                if (!t) return resErr(res, 400, 'specified event-team does not exist');
+
+                let s;
+                try {
+                    s = await Score.Model.findOne({ eventTeamId: t._id }).exec();
+                } catch (err) {
+                    logERR('Error getting score for team id=%s err=%s', t._id, err.message);
+                }
+
+                if (!s) {
+                    s = new Score.Model({ eventTeamId: t._id });
+                }
+
+                try {
+                    let gs: Score.GameDetails = {
+                        round: req.body.type,
+                        table: req.body.place,
+                        submitedOn: new Date(),
+                        submitedBy: req.user._id?.toHexString() || 'unknown',
+                        score: req.body.score,
+                        missions: req.body.details,
+                    };
+
+                    s.gameDetails.push(gs);
+
+                    await s.save();
+
+                    debug('Returning score %O', s);
+                    res.json(s);
+                } catch (err) {
+                    logERR('Error saving game %O error=%O', s, err);
+                    resErr(res, 500, 'error saving gave details');
+                }
             }
-            if (!t) return resErr(res, 400, 'specified event-team does not exist');
+            break;
+        case 'postJudgingScore':
+            {
+                // only Admin/evemt manager/judge can post
+                if (!req.user.isAdmin && !req.user.isEventManager && !req.user.isEventJudge)
+                    return resErr(res, 401, 'auth', 'permission denied');
 
-            let s;
-            try {
-                s = await Score.Model.findOne({ eventTeamId: t._id }).exec();
-            } catch (err) {
-                logERR('Error getting score for team id=%s err=%s', t._id, err.message);
+                const etId = req.body.eventTeamId;
+                let t;
+                try {
+                    t = await EventTeam.Model.findById(etId).select({ _id: 1 }).lean().exec();
+                } catch (err) {
+                    logERR('Error getting event-teamid=%s err=%s', etId, err.message);
+                }
+                if (!t) return resErr(res, 400, 'specified event-team does not exist');
+
+                let s;
+                try {
+                    s = await Score.Model.findOne({ eventTeamId: t._id }).exec();
+                } catch (err) {
+                    logERR('Error getting score for team id=%s err=%s', t._id, err.message);
+                }
+
+                if (!s) {
+                    s = new Score.Model({ eventTeamId: t._id });
+                }
+
+                try {
+                    let gs: Score.JudgingDetails = {
+                        type: req.body.type,
+                        room: req.body.place,
+                        submitedOn: new Date(),
+                        submitedBy: req.user._id?.toHexString() || 'unknown',
+                        score: req.body.score,
+                        beginning: req.body.detials && req.body.detials.bg,
+                        developing: req.body.detials && req.body.detials.dv,
+                        accomplished: req.body.detials && req.body.detials.ac,
+                        exceeds: req.body.detials && req.body.detials.ex,
+                    };
+
+                    s.judgingDetails.push(gs);
+
+                    await s.save();
+
+                    debug('Returning score %O', s);
+                    res.json(s);
+                } catch (err) {
+                    logERR('Error saving game %O error=%O', s, err);
+                    resErr(res, 500, 'error saving gave details');
+                }
             }
-
-            if (!s) {
-                s = new Score.Model({ eventTeamId: t._id });
-            }
-
-            let gs = {
-                round: req.body.type,
-                table: req.body.place,
-                submitedOn: new Date(),
-                submitedBy: req.user._id?.toHexString() || 'unknown',
-                score: req.body.score,
-                missions: req.body.details,
-            };
-
-            try {
-                s.gameDetails.push(gs);
-
-                await s.save();
-
-                debug('Returining score %O', s);
-                res.json(s);
-            } catch (err) {
-                logERR('Error saving game %O error=%O', s, err);
-                resErr(res, 500, 'error saving gave details');
-            }
+            break;
+        default:
+            logERR('Unknown command cmd=%s', cmd);
+            resErr(res, 500, 'unknown command');
     }
 });
 
