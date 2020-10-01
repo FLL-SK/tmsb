@@ -175,7 +175,7 @@ router.post('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
                 try {
                     let gs: Score.GameDetails = {
-                        round: req.body.type,
+                        round: req.body.round,
                         table: req.body.place,
                         submitedOn: new Date(),
                         submitedBy: req.user._id?.toHexString() || 'unknown',
@@ -223,18 +223,19 @@ router.post('/:id', Auth.jwt(), async function (req: RequestEvent, res, next) {
 
                 try {
                     let gs: Score.JudgingDetails = {
-                        type: req.body.type,
                         room: req.body.place,
                         submitedOn: new Date(),
                         submitedBy: req.user._id?.toHexString() || 'unknown',
                         score: req.body.score,
-                        beginning: req.body.detials && req.body.detials.bg,
-                        developing: req.body.detials && req.body.detials.dv,
-                        accomplished: req.body.detials && req.body.detials.ac,
-                        exceeds: req.body.detials && req.body.detials.ex,
+                        beginning: req.body.details && req.body.details.beginning,
+                        developing: req.body.details && req.body.details.developing,
+                        accomplished: req.body.details && req.body.details.accomplished,
+                        exceeds: req.body.details && req.body.details.exceeds,
                     };
 
-                    s.judgingDetails.push(gs);
+                    if (req.body.category === 'coreValues') s.cvDetails.push(gs);
+                    if (req.body.category === 'project') s.projectDetails.push(gs);
+                    if (req.body.category === 'design') s.designDetails.push(gs);
 
                     await s.save();
 

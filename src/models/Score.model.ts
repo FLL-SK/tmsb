@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export namespace Score {
     export interface JudgingDetails {
-        type: string; // V, P, D
         room: string;
         submitedOn: Date;
         submitedBy: string;
@@ -34,8 +33,10 @@ export namespace Score {
         gameQ?: number; // quarter-finals score
         gameS?: number; // semi-finals score
         gameF?: number; // finals score
-        judgingDetails: JudgingDetails[];
         gameDetails: GameDetails[];
+        cvDetails: JudgingDetails[];
+        projectDetails: JudgingDetails[];
+        designDetails: JudgingDetails[];
     }
 
     export interface Type extends Type_noID {
@@ -46,7 +47,6 @@ export namespace Score {
 
     export const judgingSchema: Schema = new Schema(
         {
-            type: { type: String, required: true },
             room: { type: String, required: true },
             submitedOn: { type: Date, required: true, default: new Date() },
             submitedBy: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
@@ -84,7 +84,9 @@ export namespace Score {
         gameS: { type: Number },
         gameF: { type: Number },
         gameDetails: [{ type: gameSchema }],
-        judgingDetails: [{ type: judgingSchema }],
+        cvDetails: [{ type: judgingSchema }],
+        projectDetails: [{ type: judgingSchema }],
+        designDetails: [{ type: judgingSchema }],
     });
 
     schema.pre('save', async function (next) {
@@ -117,19 +119,17 @@ export namespace Score {
         }
         doc.game = Math.max(doc.game1 || 0, doc.game2 || 0, doc.game3 || 0);
 
-        doc.judgingDetails.sort((a, b) => a.submitedOn.getTime() - b.submitedOn.getTime());
-        for (let g of doc.judgingDetails) {
-            switch (g.type) {
-                case 'V':
-                    doc.coreValues = g.score;
-                    break;
-                case 'P':
-                    doc.project = g.score;
-                    break;
-                case 'D':
-                    doc.design = g.score;
-                    break;
-            }
+        doc.cvDetails.sort((a, b) => a.submitedOn.getTime() - b.submitedOn.getTime());
+        if (doc.cvDetails.length > 0)
+            doc.coreValues = doc.cvDetails[doc.cvDetails.length - 1].score;
+
+        doc.projectDetails.sort((a, b) => a.submitedOn.getTime() - b.submitedOn.getTime());
+        if (doc.projectDetails.length > 0)
+            doc.project = doc.projectDetails[doc.projectDetails.length - 1].score;
+
+        doc.designDetails.sort((a, b) => a.submitedOn.getTime() - b.submitedOn.getTime());
+        if (doc.designDetails.length > 0) {
+            doc.design = doc.designDetails[doc.designDetails.length - 1].score;
         }
 
         next();
