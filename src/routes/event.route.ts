@@ -327,6 +327,7 @@ router.get('/', Auth.jwt(), async function (req: RequestEvent, res, next) {
             try {
                 const p = await Event.Model.find(q)
                     .select({ _id: 1, name: 1, startDate: 1 })
+                    .lean()
                     .exec();
                 debug('Result %O', p);
                 return res.json(p);

@@ -1,4 +1,5 @@
 import { Promise as PromiseB } from 'bluebird';
+import add from 'date-fns/add';
 
 const debugLib = require('debug')('lib/dbseed');
 const logERR = require('debug')('ERROR:db-seed');
@@ -76,6 +77,7 @@ export function seedEvents() {
             try {
                 debug('Event %s', item.name);
                 let e = new Event.Model(item);
+                if (item.offset) e.startDate = add(new Date(), { days: item.offset });
                 for (let i of eventData2[index].managers) {
                     let u = await User.Model.findOne({ email: i + '@users.users' }).exec();
                     if (u) e.managers.push(u._id);
