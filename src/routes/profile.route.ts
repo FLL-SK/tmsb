@@ -1,9 +1,9 @@
 import express, { Request } from 'express';
-import passport from 'passport';
+import { Auth } from '../lib/auth';
 
-const debugLib = require('debug')('profile.route');
-const logERR = require('debug')('ERROR:profile.route');
-const logWARN = require('debug')('WARN:profile.route');
+const debugLib = require('debug')('route.profile');
+const logERR = require('debug')('ERROR:route.profile');
+const logWARN = require('debug')('WARN:route.profile');
 
 import { User } from '../models';
 
@@ -31,11 +31,7 @@ router.param('id', async function (req: RequestProfile, res, next) {
     }
 });
 
-router.get('/:id', passport.authenticate('jwt', { session: false }), function (
-    req: RequestProfile,
-    res,
-    next
-) {
+router.get('/:id', Auth.jwt(), function (req: RequestProfile, res, next) {
     const debug = debugLib.extend('get/:id');
     res.json(req.profile);
 });
