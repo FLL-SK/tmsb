@@ -117,6 +117,13 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.6.4.tgz#a145cc0bb14ef9c4777361b7bbafa5cf8e3acb5a"
   integrity sha512-Wk7nG1JSaMfMpoMJDKUsWYugliB2Vy55pdjLpmLixeyMi7HizW2I/9QoxsPCkXl3dO+ZOVqPumKaDUv5zJu2uQ==
 
+"@types/nodemailer@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.4.0.tgz#d8c039be3ed685c4719a026455555be82c124b74"
+  integrity sha512-KY7bFWB0MahRZvVW4CuW83qcCDny59pJJ0MQ5ifvfcjNwPlIT0vW4uARO4u1gtkYnWdhSvURegecY/tzcukJcA==
+  dependencies:
+    "@types/node" "*"
+
 "@types/passport-jwt@^3.0.3":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@types/passport-jwt/-/passport-jwt-3.0.3.tgz#47b6c43af668852d7c83e56a23ed9f4515dd1814"
@@ -1123,6 +1130,11 @@ negotiator@0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
+
+nodemailer@^6.4.13:
+  version "6.4.13"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.4.13.tgz#40e67cf5a32f2052258822a9394e190ea9714801"
+  integrity sha512-XmtiiKza2Cqtr+ZRMchMZn9s2nmwQDeakbf+yL0ODsIXOv58UZgk/MKPOkDKqY+mvxHs87PrJK7Nf/tcpKHqYQ==
 
 nodemon@^2.0:
   version "2.0.4"
